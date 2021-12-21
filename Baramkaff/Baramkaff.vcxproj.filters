@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="FundLibs\HelperGL\HelperGL.cpp">
+      <Filter>GL</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>GL</Filter>
+    </ClCompile>
+    <ClCompile Include="FundLibs\Win\win.cpp">
+      <Filter>win</Filter>
+    </ClCompile>
+    <ClCompile Include="FundLibs\FileHelper\FileHelper.cpp">
+      <Filter>file</Filter>
+    </ClCompile>
+    <ClCompile Include="FundLibs\HelperGL\Shader.cpp">
+      <Filter>GL</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="FundLibs\HelperGL\HelperGL.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+    <ClInclude Include="FundLibs\Win\win.h">
+      <Filter>win</Filter>
+    </ClInclude>
+    <ClInclude Include="FundLibs\FileHelper\FileHelper.h">
+      <Filter>file</Filter>
+    </ClInclude>
+    <ClInclude Include="FundLibs\HelperGL\Shader.h">
+      <Filter>GL</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\main.vert.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="Shaders\main.frag.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="Shaders\main.geom.glsl">
+      <Filter>shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="GL">
+      <UniqueIdentifier>{4cca8cb9-56e1-4aef-ba81-448aaa03bd81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{e37af66d-535b-416e-a1f0-1213543557de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="win">
+      <UniqueIdentifier>{e4d2f015-9f17-4e69-b528-e35c4e03e82a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="file">
+      <UniqueIdentifier>{63fc9645-d4e2-46e7-8d90-06b53c17c3d4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
