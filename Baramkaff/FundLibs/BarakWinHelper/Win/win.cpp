@@ -28,14 +28,17 @@ void winClass::init(HINSTANCE hInst, LPSTR lpCmdLine, int nCmdShow, LPCWSTR pCla
 hWin::hWin() {}
 hWin::hWin(std::nullptr_t) { hWnd = nullptr; }
 HWND hWin::getWin() { return hWnd; }
-void hWin::setXY(int x, int y) { this->x = x; this->y = y; }
-void hWin::setWH(int w, int h) { this->h = h; this->w = w; }
+void hWin::setXY(size_t x, size_t y) { this->x = x; this->y = y; }
+void hWin::setWH(size_t w, size_t h) { this->h = h; this->w = w; }
+size_t hWin::getX() { return x; }
+size_t hWin::getY() { return y; }
 size_t hWin::getW() { return w; }
 size_t hWin::getH() { return h; }
 //hWind//
 
 //hWindow//
 HDC hWindow::getHDC() { return hdc; }
+LPCWSTR hWindow::getName() { return name; }
 void hWindow::init(winClass* wic, LPCWSTR name, DWORD dwStyle, hWin parent) {
 	this->wic = wic;
 	this->hWnd = CreateWindow(
@@ -46,6 +49,20 @@ void hWindow::init(winClass* wic, LPCWSTR name, DWORD dwStyle, hWin parent) {
 		parent.getWin(), nullptr, wic->hInst, nullptr
 	);
 	hdc = GetDC(getWin());
+}
+void hWindow::init(winClass* wic, DWORD dwStyle, hWin parent) {
+	this->wic = wic;
+	this->hWnd = CreateWindow(
+		wic->pClassName,
+		name,
+		dwStyle,
+		x, y, w, h,
+		parent.getWin(), nullptr, wic->hInst, nullptr
+	);
+	hdc = GetDC(getWin());
+}
+void hWindow::rename(LPCWSTR name) {
+	this->name = name;
 }
 void hWindow::show(bool Maximized) {
 	RECT wRect, cRect;
@@ -68,7 +85,7 @@ void hWindow::resize() {
 	x = wRect.top;
 	y = wRect.left;
 	w = wRect.right - wRect.left;
-	w = wRect.bottom - wRect.top;
+	h = wRect.bottom - wRect.top;
 }
 //hWindow//
 

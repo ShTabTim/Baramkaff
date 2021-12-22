@@ -1,7 +1,9 @@
 #pragma once
 #include <glad/glad.h>
-#include"../FileHelper/FileHelper.h"
+#include <string>
 #define ShaderDebug false
+
+void checkCompileErrors(unsigned int shader, std::string type);
 
 typedef	struct shader {
 	GLuint id;
@@ -21,3 +23,10 @@ typedef struct program {
 	GLuint getUnigorm(const char* name);
 	GLuint getAtribut(const char* name);
 }program;
+void errorGLshader(const wchar_t* name, GLuint id);
+typedef struct pipeprog {
+	GLuint id;
+	void create(GLuint type, GLuint typeBIT, const char* path);
+	void gen();
+	void bind();
+};

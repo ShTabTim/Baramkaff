@@ -1,5 +1,7 @@
 #include "Shader.h"
+#include"../FileHelper/FileHelper.hpp"
 #include <Windows.h>
+#include <string>
 void checkCompileErrors(unsigned int shader, std::string type)
 {
     int success;
@@ -35,13 +37,14 @@ void checkCompileErrors(unsigned int shader, std::string type)
 //shader//
 void shader::init(const char* path, GLuint type) {
     this->type = type;
-    std::string df = rdFile(path) + "//\0";
-    const char* t = df.c_str();
-    if (ShaderDebug) {
-        LPWSTR filename = new wchar_t[df.length()];
-        MultiByteToWideChar(0, 0, t, df.length(), filename, df.length());
-        MessageBox(nullptr, filename, L"Shader code", MB_OK);
-    }
+    std::string s = rdFile(path);
+    const char* t = s.c_str();
+#if ShaderDebug
+        size_t gh = s.length();
+        LPWSTR fff = new wchar_t[gh];
+        MultiByteToWideChar(0, 0, t, gh, fff, gh);
+        MessageBox(nullptr, fff, L"Shader code", MB_OK);
+#endif
     id = glCreateShader(type);
     glShaderSource(id, 1, &t, NULL);
     glCompileShader(id);
@@ -71,3 +74,28 @@ void program::use() { glUseProgram(id); }
 GLuint program::getUnigorm(const char* name) { return glGetUniformLocation(id, name); }
 GLuint program::getAtribut(const char* name) { return glGetAttribLocation( id, name); }
 //program//
+
+//error//
+void errorGLshader(const wchar_t* name, GLuint id) {
+    char* error_log = new char[4096];
+    glGetProgramInfoLog(id, 4096, NULL, error_log);
+    if (error_log[0] != 0) {
+        LPWSTR ww = new wchar_t[4096];
+        MultiByteToWideChar(0, 0, error_log, 4096, ww, 4096);
+        MessageBox(nullptr, ww, name, MB_OK);
+    }
+}
+//error//
+
+//pipeprog//
+void pipeprog::create(GLuint type, GLuint typeBIT, const char* path) {
+    std::string code = rdFile(path);
+    const GLchar* t[] = { code.c_str() };
+    GLuint prog;
+    prog = glCreateShaderProgramv(type, sizeof(t) / sizeof(void*), t);
+    errorGLshader(L"shader", prog);
+    glUseProgramStages(id, typeBIT, prog);
+}
+void pipeprog::gen() { glGenProgramPipelines(1, &id); }
+void pipeprog::bind() { glBindProgramPipeline(id); }
+//pipeprog//

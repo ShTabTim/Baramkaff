@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 
+
 std::string rdFile(const char* path);
 template <typename T>
 void wrFile(const char* path, T t) {

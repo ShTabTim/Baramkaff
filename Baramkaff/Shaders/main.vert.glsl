@@ -1,12 +1,14 @@
-#version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aColor;
+#version 450 core
 
-out VS_OUT {
-    vec3 color;
-} vs_out;
+const vec2 vertices[] = {
+    vec2(-1.0, -1.0),
+    vec2(-1.0,  2.0),
+    vec2( 2.0, -1.0)
+};
+
+out vec3 color;
 
 void main() {
-    vs_out.color = aColor;
-    gl_Position = vec4(aPos, 1.0);
-};
+    color = vec3(1, 0, 0);
+    gl_Position = vec4(vertices[gl_VertexID], 0.0, 1.0);
+}
