@@ -9,6 +9,8 @@ void prepr(hWindow* g_Win){
 	g_Win->rename(L"Graphical panel");
 }
 
+float ff(int g) { return (float)g; }
+
 int main() {
 
 	program prog;
@@ -80,6 +82,7 @@ int main() {
 		glClearColorRGB(0, 0, 0);
 
 		glUniform3f(glGetUniformLocation(prog.id, "pos"), pos[0], pos[1], pos[2]);
+		glUniform1f(glGetUniformLocation(prog.id, "akd"), ff(getWind().getW())/ff(getWind().getH()));
 		glUniform2f(glGetUniformLocation(prog.id, "angles"), ang[0], ang[1]);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 

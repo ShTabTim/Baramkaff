@@ -4,7 +4,7 @@
 winClass wc;
 hWindow gWin;
 bool isLive = true;
-
+hWindow getWind() { return gWin; }
 HGLRC hRC;
 bool quit = false;
 

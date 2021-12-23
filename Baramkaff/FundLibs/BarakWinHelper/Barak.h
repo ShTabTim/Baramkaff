@@ -8,3 +8,4 @@ void prepr(hWindow* g_Win);
 int main();
 bool threadIsLive();
 void SwapBuffers();
+hWindow getWind();
