@@ -3,12 +3,18 @@
 
 short m_keyOldState[256] = { 0 };
 short m_keyNewState[256] = { 0 };
-sKeyState m_keys[256], m_mouse[5];
+sKeyState m_keys[256], m_mouse[5];	
+POINT pt = { 0, 0 };
+POINT ptOld = { 0, 0 };
+
 
 bool m_mouseOldState[5] = { 0 };
 bool m_mouseNewState[5] = { 0 };
 sKeyState GetKey(int nKeyID) { return m_keys[nKeyID]; }
 sKeyState GetMouse(int nMouseButtonID) { return m_mouse[nMouseButtonID]; }
+void ssetXY(int x, int y) { pt.x = x; pt.y = y; }
+int getdx() { return pt.x-ptOld.x; }
+int getdy() { return pt.y-ptOld.y; }
 
 void KeyUpdate() {
 	for (int i = 0; i < 256; i++) {
@@ -44,4 +50,6 @@ void KeyUpdate() {
 			}
 		m_mouseOldState[m] = m_mouseNewState[m];
 	}
+	ptOld = pt;
+	GetCursorPos(&pt);
 }

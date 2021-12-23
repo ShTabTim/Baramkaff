@@ -88,14 +88,13 @@ void errorGLshader(const wchar_t* name, GLuint id) {
 //error//
 
 //pipeprog//
-void pipeprog::create(GLuint type, GLuint typeBIT, const char* path) {
+void pipeprog::create(GLuint type, GLuint typeBIT, const char* path, GLuint num) {
     std::string code = rdFile(path);
     const GLchar* t[] = { code.c_str() };
-    GLuint prog;
-    prog = glCreateShaderProgramv(type, sizeof(t) / sizeof(void*), t);
-    errorGLshader(L"shader", prog);
-    glUseProgramStages(id, typeBIT, prog);
+    progs[num] = glCreateShaderProgramv(type, sizeof(t) / sizeof(void*), t);
+    errorGLshader(L"shader", progs[num]);
+    glUseProgramStages(id, typeBIT, progs[num]);
 }
-void pipeprog::gen() { glGenProgramPipelines(1, &id); }
+void pipeprog::gen(GLuint shads) { glGenProgramPipelines(1, &id); progs = new GLuint[shads]; }
 void pipeprog::bind() { glBindProgramPipeline(id); }
 //pipeprog//

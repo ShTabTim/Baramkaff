@@ -6,16 +6,15 @@ hWindow gWin;
 bool isLive = true;
 
 HGLRC hRC;
-HDC hdc;
 bool quit = false;
 
 bool threadIsLive() { return isLive; }
-void SwapBuffers() { SwapBuffers(hdc); }
+void SwapBuffers() { SwapBuffers(gWin.getHDC()); }
 void mainThread() {
-	EnableOpenGL(gWin, &hdc, &hRC);
+	EnableOpenGL(gWin, &hRC);
 	gladLoadGL();
 	quit = main();
-	DisableOpenGL(gWin, hdc, hRC);
+	DisableOpenGL(gWin, hRC);
 }
 
 
@@ -47,11 +46,12 @@ int CALLBACK WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR pCmdLine, int n
 		gWin.setXY(CW_USEDEFAULT, CW_USEDEFAULT);
 	if (gWin.getW() == 0)
 		gWin.setWH(256, 256);
+	DWORD style = WS_POPUP;
 	if (gWin.getName())
-		gWin.init(&wc, WS_OVERLAPPEDWINDOW, nullptr);
+		gWin.init(&wc, style, nullptr);
 	else
-		gWin.init(&wc, L"GraphPan", WS_OVERLAPPEDWINDOW, nullptr);
-	gWin.show(false);
+		gWin.init(&wc, L"GraphPan", style, nullptr);
+	gWin.show(true);
 
 	std::thread rTh(mainThread);
 

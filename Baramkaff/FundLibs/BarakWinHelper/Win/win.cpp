@@ -1,4 +1,5 @@
 #include "win.h"
+#include <corecrt_wstdio.h>
 
 //winClass//
 winClass::winClass() {}
@@ -59,7 +60,7 @@ void hWindow::init(winClass* wic, DWORD dwStyle, hWin parent) {
 		x, y, w, h,
 		parent.getWin(), nullptr, wic->hInst, nullptr
 	);
-	hdc = GetDC(getWin());
+	hdc = GetDC(hWnd);
 }
 void hWindow::rename(LPCWSTR name) {
 	this->name = name;
@@ -79,13 +80,19 @@ void hWindow::show(bool Maximized) {
 }
 
 void hWindow::resize() {
-	RECT wRect;
+	RECT wRect, cRect;
 	GetWindowRect(hWnd, &wRect);
+	GetClientRect(hWnd, &cRect);
 
-	x = wRect.top;
-	y = wRect.left;
-	w = wRect.right - wRect.left;
-	h = wRect.bottom - wRect.top;
+	x = wRect.left;
+	y = wRect.top;
+	w = cRect.right;
+	h = cRect.bottom;
+
+	hdc = GetDC(hWnd);
+	//wchar_t s[64];
+	//swprintf_s(s, 64, L"%d, %d", w, h);
+	//MessageBox(hWnd, s, L"Snxf", MB_OK);
 }
 //hWindow//
 
