@@ -1,17 +1,27 @@
 #version 450 core
 
-uniform vec3 pos;
-uniform vec2 angles;
+#define USE_SHADOWS false
+#define MaxRenderL 256
+
+layout(std430, binding=0) readonly buffer voxels_block {
+    uint voxels[];
+};
+
+layout(location=1) uniform uint XX;
+layout(location=2) uniform uint YY;
+layout(location=3) uniform uint ZZ;
+layout(location=4) uniform vec3 pos;
+layout(location=5) uniform vec2 angles;
 out vec4 FragColor;
 in vec2 FragCord;
 
-float mod289(float x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
-vec4 mod289(vec4 x){return x - floor(x * (1.0 / 289.0)) * 289.0;}
-vec4 perm(vec4 x){return mod289(((x * 34.0) + 1.0) * x);}
+float gfh = 300;
+float modFGH(float x){return x - floor(x / gfh) * gfh;}
+vec4  modFGH(vec4  x){return x - floor(x / gfh) * gfh;}
+vec4 perm(vec4 x){return modFGH(((x * 34.0) + 1.0) * x);}
 
 float noise(vec3 p){
     p *= 10;
-    //p = p - ivec3(p);
     vec3 a = floor(p);
     vec3 d = p - a;
     d = d * d * (3.0 - 2.0 * d);
@@ -40,79 +50,76 @@ float octave_noise(int octaves, vec3 pos){
     return gh/octaves;
 }
 
-vec2 cube_intersect(vec3 ro, vec3 rd, float rad, out vec3 outNormal) {
-    ro = -ro;
-    vec3 t0 = ro / rd;
-    vec3 t1 = (ro + vec3(rad)) / rd;
-    vec3 t2 = min(t0, t1);
-    vec3 t3 = max(t0, t1);
-    vec2 l = vec2(max(max(t2.x, t2.y), t2.z), min(min(t3.x, t3.y), t3.z));
-    if (l.x > l.y || l.y < 0.0) return vec2(-1.0);
-    outNormal = -sign(rd) * step(t2.yzx, t2) * step(t2.zxy, t2);
-    return l;
-}
-vec2 cube_intersect(vec3 ro, vec3 rd, float rad) {
-    ro = -ro;
-    vec3 t0 = ro / rd;
-    vec3 t1 = (ro + vec3(rad)) / rd;
-    vec3 t2 = min(t0, t1);
-    vec3 t3 = max(t0, t1);
-    vec2 l = vec2(max(max(t2.x, t2.y), t2.z), min(min(t3.x, t3.y), t3.z));
-    if (l.x > l.y || l.y < 0.0) return vec2(-1.0);
-    return l;
+uint getVoxel(vec3 p) {
+    if (p.x < XX && p.y < YY && p.z < ZZ && p.x >= 0 && p.y >= 0 && p.z >= 0)
+        return voxels[uint(p.x*YY*ZZ+p.y*ZZ+p.z)];
+    //if (p.y < cos(p.x*3.14159265/8) * cos(p.z*3.14159265/8) * 0.1) {
+    //    return voxels[uint(fract((p.x*8*8+p.y*8+p.z)/(8*8*8))*8*8*8)];
+    //} else
+    //    return 0;
 }
 
-#define MaxRenderL 1024
-
-struct body {
-    vec3 norm;
-    vec3 color;
-    float lMax;
-    bool isLight;
-};
-
-void intersect(vec3 ro, vec3 rd, out body bod) {
-    float l = MaxRenderL;
-    bod.lMax = MaxRenderL;
-    vec3 norm;
-
-    l = cube_intersect(ro - vec3(0, 0, 3), rd, 4, norm).x;
-    if (l > 0 && l < bod.lMax) {
-        bod.color = vec3(0.8, 0.8, 0.2);
-        bod.norm = norm;
-        bod.lMax = l;
+vec3 getColor(uint id) {
+    vec3 col;
+    switch (id) {
+    case 1:
+        col = vec3(1, 0, 0);
+        break;
+    case 2:
+        col = vec3(0, 1, 0);
+        break;
+    case 3:
+        col = vec3(0, 0, 1);
+        break;
     }
-
-    l = cube_intersect(ro - vec3(4, 2, 2), rd, 4, norm).x;
-    if (l > 0 && l < bod.lMax) {
-        bod.color = vec3(0.8, 0.2, 0.8);
-        bod.norm = norm;
-        bod.lMax = l;
-    }
-
-    l = cube_intersect(ro - vec3(5, 1, 1), rd, 2, norm).x;;
-    if (l > 0 && l < bod.lMax) {
-        bod.norm = norm;
-        bod.color = normalize(ro + rd * l - vec3(5, 1, 1));
-        bod.lMax = l;
-        bod.isLight = true;
-    }
+    return col;
 }
 
-vec3 castRay(inout vec3 ro, inout vec3 rd, out body bod) {
-    bod.lMax = MaxRenderL;
-    bod.isLight = false;
+vec3 vox_inter(vec3 ro, vec3 rd, inout vec3 vpos, inout vec3 norm) {
+    vpos = floor(ro);
+    
+    vec3 step = sign(rd);
+    vec3 tDelta = step / rd;
 
-    intersect(ro, rd, bod);
+    
+    float tMaxX, tMaxY, tMaxZ;
+    
+    vec3 fr = fract(ro);
+    
+    tMaxX = tDelta.x * ((rd.x>0.0) ? (1.0 - fr.x) : fr.x);
+    tMaxY = tDelta.y * ((rd.y>0.0) ? (1.0 - fr.y) : fr.y);
+    tMaxZ = tDelta.z * ((rd.z>0.0) ? (1.0 - fr.z) : fr.z);
 
-    if (bod.lMax == MaxRenderL)
-        return vec3(0);
-    else {
-        ro += rd * (bod.lMax - 0.001f);
-        rd = normalize(rd - bod.norm * 2 * dot(rd, bod.norm));
-        bod.color *= noise(vec3(noise(ro.xyz), noise(ro.yzx), noise(ro.zxy)));
+    for (int i = 0; i < MaxRenderL; i++) {
+        uint h = getVoxel(ivec3(vpos));
+        if (h != 0) {
+            return getColor(h);
+        }
+        
+        if (tMaxX < tMaxY) {
+            if (tMaxZ < tMaxX) {
+                tMaxZ += tDelta.z;
+                vpos.z += step.z;
+                norm = vec3(0, 0,-step.z);
+            } else {
+                tMaxX += tDelta.x;
+            	vpos.x += step.x;
+                norm = vec3(-step.x, 0, 0);
+            }
+        } else {
+            if (tMaxZ < tMaxY) {
+                tMaxZ += tDelta.z;
+                vpos.z += step.z;
+                norm = vec3(0, 0, -step.z);
+            } else {
+            	tMaxY += tDelta.y;
+            	vpos.y += step.y;
+                norm = vec3(0, -step.y, 0);
+            }
+        }
     }
-    return bod.color;
+
+ 	return vec3(0,0,0);
 }
 vec3 pow(vec3 g, float h) {
     g.x = pow(g.x, h);
@@ -121,7 +128,6 @@ vec3 pow(vec3 g, float h) {
     return g;
 }
 void main() {
-
     vec2 s = sin(angles);
     vec2 c = cos(angles);
     vec3 rd = normalize(vec3(FragCord*0, 1) + vec3(FragCord, 0)) 
@@ -134,17 +140,25 @@ void main() {
                   0,   1,   0,
                  -s.x, 0,   c.x );
     vec3 ro = pos;
-    body bod;
-    vec3 color = castRay(ro, rd, bod);
-    vec3 lll = normalize(vec3(0.3, 0.5, -1));
-    body gog;
-    vec3 ll = castRay(ro, lll, gog);
 
-    if (gog.lMax < MaxRenderL)
-        bod.color /= 10;
-    else
-        bod.color *= dot(bod.norm, lll);
+    
+    vec3 norm, vpos;
+    vec3 col = vox_inter(ro - vec3(0, 0, 3), rd, vpos, norm);
+    
+    vec3 lightDir = normalize(vec3(-1.0, 3.0, -1.0));
+    float diffuseAttn = max(dot(norm, lightDir), 0.0);
+    vec3 light = vec3(1.0,0.9,0.9);
+    
+    vec3 ambient = vec3(0.2, 0.2, 0.3);
+    
+    vec3 reflected = reflect(rd, norm);
+    float specularAttn = max(dot(reflected, lightDir), 0.0);
 
-    FragColor = vec4(bod.color, 1);
+    col *= diffuseAttn*light*1.0 + specularAttn*light*0.6 + ambient;
+
+    //vec3 fr = ro + rd * l;
+    //col *= noise(vec3(noise(fr.xyz), noise(fr.yzx), noise(fr.zxy)));
+
+    FragColor = vec4(col, 1);
 
 }

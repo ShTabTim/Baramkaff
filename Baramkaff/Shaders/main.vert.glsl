@@ -5,7 +5,7 @@ const vec2 vertices[] = {
     vec2(-1.0,  4.0),
     vec2( 4.0, -1.0)
 };
-uniform float akd;
+layout(location=0)uniform float akd;
 out vec2 FragCord;
 
 void main() {
