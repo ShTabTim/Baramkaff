@@ -1,12 +1,22 @@
 #include "FundLibs/BarakWinHelper/Barak.h"
 #include "FundLibs/BarakWinHelper/Win/Keys.h"
 #include "FundLibs/ObjectsGL/Shader.h"
+#include "Noises/Simplex.h"
 #include <chrono>
 #include <vector>
 
 //glad 4.6
 
+SimplexNoise noi;
+
 float ff(int g) { return (float)g; }
+
+GLuint getVoxel(GLuint x, GLuint y, GLuint z) {
+	if (y < 32+32*noi.fractal(2, x/128.0f, y/128.0f, z/128.0f))
+		return 3+2*noi.fractal(2, x/16.0f, y/16.0f, z/16.0f);
+	else
+		return 0;
+}
 
 void prepr(hWindow* g_Win){
 	g_Win->rename(L"Graphical panel");
@@ -27,14 +37,14 @@ int main() {
 	//prog.create(GL_FRAGMENT_SHADER, GL_FRAGMENT_SHADER_BIT, "Shaders/main.frag.glsl", 1);
 	//prog.bind();
 
-	size_t XX = 16, YY = 32, ZZ = 16;
+	size_t XX = 256, YY = 64, ZZ = 256;
 
 	GLuint* voxels = new GLuint[XX*YY*ZZ];
 
 	for (size_t i = 0; i < XX; i++)
 		for (size_t j = 0; j < YY; j++)
 			for (size_t k = 0; k < ZZ; k++)
-				voxels[i*YY*ZZ+j*ZZ+k] = rand()%4;
+				voxels[i*YY*ZZ+j*ZZ+k] = getVoxel(i, j, k);
 
 	glUniform1ui(1, XX);
 	glUniform1ui(2, YY);
@@ -46,10 +56,10 @@ int main() {
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint)*XX*YY*ZZ, voxels, GL_DYNAMIC_DRAW);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, voxels_buffer);
 
-	float speed = 5;
+	float speed = 10;
 	float angSpeed = 1;
 	char vel[3];
-	float pos[3] = { 0, 0, 0 };
+	float pos[3] = { 0, 50, 0 };
 	char angVel[2] = { 0, 0 };
 	float ang[2] = { 0, 0 };
 	float dt;

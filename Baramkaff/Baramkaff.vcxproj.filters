@@ -21,6 +21,9 @@
     <ClCompile Include="FundLibs\BarakWinHelper\HelperGL\glad.c">
       <Filter>Barak\glad</Filter>
     </ClCompile>
+    <ClCompile Include="Noises\Simplex.cpp">
+      <Filter>Noises</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FundLibs\FileHelper\FileHelper.hpp">
@@ -39,6 +42,9 @@
       <Filter>Barak</Filter>
     </ClInclude>
     <ClInclude Include="FundLibs\ObjectsGL\Shader.h" />
+    <ClInclude Include="Noises\Simplex.h">
+      <Filter>Noises</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\main.vert.glsl">
@@ -60,6 +66,9 @@
     </Filter>
     <Filter Include="Barak\glad">
       <UniqueIdentifier>{c15c19fb-139a-466e-b840-69f97766c12a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Noises">
+      <UniqueIdentifier>{66276ad4-da5d-4550-ba9a-77353938c7fb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

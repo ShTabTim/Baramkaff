@@ -1,7 +1,7 @@
 #version 450 core
 
 #define USE_SHADOWS false
-#define MaxRenderL 256
+#define MaxRenderL 128
 
 layout(std430, binding=0) readonly buffer voxels_block {
     uint voxels[];
@@ -10,12 +10,14 @@ layout(std430, binding=0) readonly buffer voxels_block {
 layout(location=1) uniform uint XX;
 layout(location=2) uniform uint YY;
 layout(location=3) uniform uint ZZ;
+
 layout(location=4) uniform vec3 pos;
 layout(location=5) uniform vec2 angles;
+
 out vec4 FragColor;
 in vec2 FragCord;
 
-float gfh = 300;
+float gfh = 100;
 float modFGH(float x){return x - floor(x / gfh) * gfh;}
 vec4  modFGH(vec4  x){return x - floor(x / gfh) * gfh;}
 vec4 perm(vec4 x){return modFGH(((x * 34.0) + 1.0) * x);}
@@ -50,18 +52,26 @@ float octave_noise(int octaves, vec3 pos){
     return gh/octaves;
 }
 
+vec2 cube_intersect(vec3 ro, vec3 rd, float size) {
+    ro = -ro;
+    vec3 t0 = ro / rd;
+    vec3 t1 = (vec3(size)+ro) / rd;
+    vec3 t2 = min(t0, t1);
+    vec3 t3 = max(t0, t1);
+    return vec2(max(max(t2.x, t2.y), t2.z), min(min(t3.x, t3.y), t3.z));
+}
+
 uint getVoxel(vec3 p) {
     if (p.x < XX && p.y < YY && p.z < ZZ && p.x >= 0 && p.y >= 0 && p.z >= 0)
         return voxels[uint(p.x*YY*ZZ+p.y*ZZ+p.z)];
-    //if (p.y < cos(p.x*3.14159265/8) * cos(p.z*3.14159265/8) * 0.1) {
-    //    return voxels[uint(fract((p.x*8*8+p.y*8+p.z)/(8*8*8))*8*8*8)];
-    //} else
-    //    return 0;
 }
 
 vec3 getColor(uint id) {
     vec3 col;
     switch (id) {
+    case 0://air
+        col = vec3(0.2, 0.3, 0.6);
+        break;
     case 1:
         col = vec3(1, 0, 0);
         break;
@@ -71,11 +81,16 @@ vec3 getColor(uint id) {
     case 3:
         col = vec3(0, 0, 1);
         break;
+    case 4:
+        col = vec3(1, 1, 0);
+        break;
+    default:
+        col = vec3(0);
     }
     return col;
 }
 
-vec3 vox_inter(vec3 ro, vec3 rd, inout vec3 vpos, inout vec3 norm) {
+uint vox_inter(vec3 ro, vec3 rd, inout vec3 vpos, inout vec3 norm) {
     vpos = floor(ro);
     
     vec3 step = sign(rd);
@@ -93,7 +108,7 @@ vec3 vox_inter(vec3 ro, vec3 rd, inout vec3 vpos, inout vec3 norm) {
     for (int i = 0; i < MaxRenderL; i++) {
         uint h = getVoxel(ivec3(vpos));
         if (h != 0) {
-            return getColor(h);
+            return h;
         }
         
         if (tMaxX < tMaxY) {
@@ -119,7 +134,7 @@ vec3 vox_inter(vec3 ro, vec3 rd, inout vec3 vpos, inout vec3 norm) {
         }
     }
 
- 	return vec3(0,0,0);
+ 	return 0;
 }
 vec3 pow(vec3 g, float h) {
     g.x = pow(g.x, h);
@@ -143,22 +158,34 @@ void main() {
 
     
     vec3 norm, vpos;
-    vec3 col = vox_inter(ro - vec3(0, 0, 3), rd, vpos, norm);
-    
+    uint id = vox_inter(ro, rd, vpos, norm);
+    vec3 col = getColor(id);
+
     vec3 lightDir = normalize(vec3(-1.0, 3.0, -1.0));
-    float diffuseAttn = max(dot(norm, lightDir), 0.0);
-    vec3 light = vec3(1.0,0.9,0.9);
+    vec2 lll = cube_intersect(ro - vec3(vpos), rd, 1);
+    if (lll.x > 0 && id != 0){
+        vec3 hh, jj;
+        uint gg = vox_inter(ro + rd*(lll.x-0.001f), lightDir, jj, hh);
+        if (gg != 0) col /= 3;
+        else {
+            float diffuseAttn = max(dot(norm, lightDir), 0.0);
+            vec3 light = vec3(1.0,0.9,0.9);
     
-    vec3 ambient = vec3(0.2, 0.2, 0.3);
+            vec3 ambient = vec3(0.2, 0.2, 0.3);
     
-    vec3 reflected = reflect(rd, norm);
-    float specularAttn = max(dot(reflected, lightDir), 0.0);
+            vec3 reflected = reflect(rd, norm);
+            float specularAttn = max(dot(reflected, lightDir), 0.0);
 
-    col *= diffuseAttn*light*1.0 + specularAttn*light*0.6 + ambient;
+            col *= diffuseAttn*light*1.0 + specularAttn*light*0.6 + ambient;
+        }
 
-    //vec3 fr = ro + rd * l;
-    //col *= noise(vec3(noise(fr.xyz), noise(fr.yzx), noise(fr.zxy)));
-
+        vec3 fr = ro + rd*(lll.x-0.001f);
+        fr /= 10;
+        if (id == 1)
+            col *= noise(vec3(noise(fr.xyz), noise(fr.yzx), noise(fr.zxy)));
+        else
+            col *= octave_noise(5, fr);
+    }
     FragColor = vec4(col, 1);
 
 }
