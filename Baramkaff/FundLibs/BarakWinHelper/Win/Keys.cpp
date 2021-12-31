@@ -13,10 +13,12 @@ bool m_mouseNewState[5] = { 0 };
 sKeyState GetKey(int nKeyID) { return m_keys[nKeyID]; }
 sKeyState GetMouse(int nMouseButtonID) { return m_mouse[nMouseButtonID]; }
 void ssetXY(int x, int y) { pt.x = x; pt.y = y; }
+int ggetX() { return pt.x; }
+int ggetY() { return pt.y; }
 int getdx() { return pt.x-ptOld.x; }
 int getdy() { return pt.y-ptOld.y; }
 
-void KeyUpdate() {
+void KeyUpdate(int x, int y) {
 	for (int i = 0; i < 256; i++) {
 		m_keyNewState[i] = GetAsyncKeyState(i);
 
@@ -35,21 +37,13 @@ void KeyUpdate() {
 
 		m_keyOldState[i] = m_keyNewState[i];
 	}
-	for (int m = 0; m < 5; m++) {
-		m_mouse[m].bPressed = false;
-		m_mouse[m].bReleased = false;
-
-		if (m_mouseNewState[m] != m_mouseOldState[m])
-			if (m_mouseNewState[m]) {
-				m_mouse[m].bPressed = true;
-				m_mouse[m].bHeld = true;
-			}
-			else {
-				m_mouse[m].bReleased = true;
-				m_mouse[m].bHeld = false;
-			}
-		m_mouseOldState[m] = m_mouseNewState[m];
-	}
+	m_mouse[0] = m_keys[VK_LBUTTON ];
+	m_mouse[1] = m_keys[VK_RBUTTON ];
+	m_mouse[2] = m_keys[VK_MBUTTON ];
+	m_mouse[3] = m_keys[VK_XBUTTON1];
+	m_mouse[4] = m_keys[VK_XBUTTON2];
 	ptOld = pt;
 	GetCursorPos(&pt);
+	pt.x -= x;
+	pt.y -= y;
 }

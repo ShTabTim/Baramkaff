@@ -45,6 +45,7 @@
     <ClInclude Include="Noises\Simplex.h">
       <Filter>Noises</Filter>
     </ClInclude>
+    <ClInclude Include="WorldSystem\VoxArray.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\main.vert.glsl">

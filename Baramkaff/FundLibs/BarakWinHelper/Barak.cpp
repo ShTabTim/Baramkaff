@@ -27,6 +27,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	case WM_SIZE:
 		gWin.resize();
 		break;
+	case WM_MOUSEMOVE:
+		gWin.resize();
+		break;
 		//case WM_KEYDOWN:
 		//	switch (wParam) {
 		//	case VK_ESCAPE:
@@ -46,7 +49,7 @@ int CALLBACK WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR pCmdLine, int n
 		gWin.setXY(CW_USEDEFAULT, CW_USEDEFAULT);
 	if (gWin.getW() == 0)
 		gWin.setWH(256, 256);
-	DWORD style = WS_POPUP;
+	DWORD style = WS_OVERLAPPEDWINDOW;// WS_POPUP;
 	if (gWin.getName())
 		gWin.init(&wc, style, nullptr);
 	else

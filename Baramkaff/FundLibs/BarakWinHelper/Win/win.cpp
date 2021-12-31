@@ -77,6 +77,7 @@ void hWindow::show(bool Maximized) {
 	MoveWindow(hWnd, wRect.left, wRect.top, wRect.right, wRect.bottom, FALSE);
 
 	ShowWindow(hWnd, Maximized ? SW_SHOWMAXIMIZED : SW_SHOWNORMAL);
+	resize();
 }
 
 void hWindow::resize() {
